@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Severin2k/blumen-komander-mcp",
   "title": "Blumen Komander München",
-  "description": "Deutschlands erster Florist mit MCP. Blumen suchen, bestellen, liefern lassen.",
-  "version": "1.0.1",
+  "description": "Blumen Komander München - Erster Florist mit MCP. Suchen, prüfen, bestellen. Lieferung München.",
+  "version": "1.0.2",
   "websiteUrl": "https://blumen-komander.de/ki-florist",
   "repository": {
     "url": "https://github.com/Severin2k/blumen-komander-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "blumen-komander-mcp",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "transport": {
         "type": "stdio"
       }
