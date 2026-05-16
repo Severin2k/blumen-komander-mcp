@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.severin2k/blumen-komander-mcp",
+  "title": "Blumen Komander München",
+  "description": "Deutschlands erster Florist mit MCP Server. Blumen in München suchen, Verfügbarkeit prüfen und Warenkorb anlegen - kostenlos, ohne Anmeldung, Lieferung immer gratis.",
+  "version": "1.0.0",
+  "websiteUrl": "https://blumen-komander.de/ki-florist",
+  "repository": {
+    "url": "https://github.com/Severin2k/blumen-komander-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "blumen-komander-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "sse",
+      "url": "https://mcp.blumen-verschicken.online/sse"
+    },
+    {
+      "type": "http",
+      "url": "https://mcp.blumen-verschicken.online/mcp"
+    }
+  ]
+}
