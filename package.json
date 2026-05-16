@@ -1,6 +1,6 @@
 {
   "name": "blumen-komander-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP Server für Blumen Komander München – Blumen suchen, Verfügbarkeit prüfen und Warenkorb anlegen per KI",
   "main": "dist/index.js",
   "type": "module",
@@ -19,6 +19,7 @@
     "flowers",
     "model-context-protocol"
   ],
+  "mcpName": "io.github.Severin2k/blumen-komander-mcp",
   "author": "Blumen Komander GbR",
   "license": "MIT",
   "homepage": "https://blumen-komander.de/ki-florist",
