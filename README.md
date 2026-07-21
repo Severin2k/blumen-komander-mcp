@@ -8,6 +8,7 @@ Deutschlands erster Florist mit öffentlichem MCP Server. Bestelle Blumen in Mü
 - **Verfügbarkeit prüfen** - Lieferbarkeit für Datum und PLZ prüfen
 - **Warenkorb anlegen** - mit Lieferadresse, Grußkarte und Zahlungsmethode
 - **Checkout-Link** - Kunde klickt und zahlt selbst
+- **Bestellstatus abfragen** - mit Bestellnummer und E-Mail
 
 Lieferung ist immer kostenlos.
 Nur München und Umland (PLZ 80xxx-81xxx).
@@ -76,6 +77,7 @@ Tools > Add a tool > Model Context Protocol
 | create_cart | Warenkorb anlegen mit Adresse, Grußkarte, Zahlung |
 | get_checkout_link | Checkout-Link für bestehenden Warenkorb abrufen |
 | get_shop_info | Öffnungszeiten, Kontakt, Zahlungsmethoden |
+| get_order_status | Bestellstatus abfragen (Bestellnummer + E-Mail, keine Adressdaten) |
 
 ## Typischer Bestellablauf
 

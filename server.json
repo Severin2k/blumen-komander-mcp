@@ -3,7 +3,7 @@
   "name": "io.github.Severin2k/blumen-komander-mcp",
   "title": "Blumen Komander München",
   "description": "First German florist with a public MCP server. Search bouquets and order flowers via AI in Munich.",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "websiteUrl": "https://blumen-komander.de/ki-florist",
   "repository": {
     "url": "https://github.com/Severin2k/blumen-komander-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "blumen-komander-mcp",
-      "version": "1.0.2",
+      "version": "1.1.0",
       "transport": {
         "type": "stdio"
       }
