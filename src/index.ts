@@ -172,6 +172,15 @@ async function startHttp() {
     });
   });
 
+  // Glama-Verzeichnis: Besitz-Nachweis für den Connector-Claim
+  // (https://glama.ai/mcp/connectors/io.github.Severin2k/blumen-komander-mcp)
+  app.get("/.well-known/glama.json", (_req, res) => {
+    res.json({
+      $schema: "https://glama.ai/mcp/schemas/connector.json",
+      maintainers: [{ email: "info@blumen-komander.de" }],
+    });
+  });
+
   app.listen(port, () => {
     console.log(`Blumen Komander MCP Server läuft auf Port ${port}`);
     console.log(`SSE Endpoint: http://localhost:${port}/sse`);
