@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Severin2k/blumen-komander-mcp",
   "title": "Blumen Komander München",
-  "description": "Blumen Komander München - Erster Florist mit MCP. Suchen, prüfen, bestellen. Lieferung München.",
+  "description": "First German florist with a public MCP server. Search bouquets and order flowers via AI in Munich.",
   "version": "1.0.2",
   "websiteUrl": "https://blumen-komander.de/ki-florist",
   "repository": {
