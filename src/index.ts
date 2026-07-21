@@ -17,6 +17,11 @@ import {
   getCheckoutLink,
 } from "./tools/get-checkout-link.js";
 import { getShopInfoSchema, getShopInfo } from "./tools/get-shop-info.js";
+import {
+  getOrderStatusSchema,
+  getOrderStatus,
+} from "./tools/get-order-status.js";
+import { withLogging, logSessionStart } from "./logger.js";
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -28,35 +33,42 @@ function createServer(): McpServer {
     "search_flowers",
     "Sucht verfügbare Blumensträuße bei Blumen Komander München. Filtert nach Anlass, Farbe, Stil und Budget.",
     searchFlowersSchema,
-    searchFlowers
+    withLogging("search_flowers", searchFlowers)
   );
 
   server.tool(
     "check_availability",
     "Prüft ob Blumen Komander München an einem bestimmten Datum in eine bestimmte PLZ liefern kann. Lieferung ist bei Blumen Komander immer kostenlos - keine Liefergebühr. Gibt Same-Day Cutoff zurück.",
     checkAvailabilitySchema,
-    checkAvailability
+    withLogging("check_availability", checkAvailability)
   );
 
   server.tool(
     "create_cart",
     "Legt einen Warenkorb bei Blumen Komander an und fügt einen Blumenstrauß hinzu. Setzt Lieferdatum, Lieferadresse, Zahlungsmethode und optional eine Grußkarte. Fragt den Kunden ob die Rechnungsadresse von der Lieferadresse abweicht. Falls ja, werden billing_first_name, billing_last_name, billing_address_1, billing_postal_code und billing_city gesetzt. Falls nein, wird die Lieferadresse als Rechnungsadresse verwendet. Bevor der Warenkorb angelegt wird sollte die KI den Kunden fragen: 1. Weicht die Rechnungsadresse von der Lieferadresse ab? 2. Welche Zahlungsmethode bevorzugst du? - Kreditkarte / Apple Pay / Google Pay (stripe) - PayPal (paypal) - SEPA-Lastschrift (sepa)",
     createCartSchema,
-    createCart
+    withLogging("create_cart", createCart)
   );
 
   server.tool(
     "get_checkout_link",
     "Gibt den direkten Checkout-Link für einen bestehenden Warenkorb zurück. Der Kunde klickt auf den Link und zahlt.",
     getCheckoutLinkSchema,
-    getCheckoutLink
+    withLogging("get_checkout_link", getCheckoutLink)
   );
 
   server.tool(
     "get_shop_info",
     "Gibt allgemeine Informationen über Blumen Komander zurück - Öffnungszeiten, Liefergebiet, Kontakt, verfügbare Zahlungsmethoden.",
     getShopInfoSchema,
-    getShopInfo
+    withLogging("get_shop_info", getShopInfo)
+  );
+
+  server.tool(
+    "get_order_status",
+    "Fragt den Status einer bestehenden Bestellung bei Blumen Komander ab - eingegangen, in Vorbereitung, unterwegs oder geliefert, inkl. Lieferdatum. Zur Verifikation werden Bestellnummer (aus der Bestellbestätigung) und die E-Mail-Adresse des Bestellers benötigt. Gibt keine Adressdaten zurück.",
+    getOrderStatusSchema,
+    withLogging("get_order_status", getOrderStatus)
   );
 
   return server;
@@ -79,6 +91,7 @@ async function startHttp() {
     const server = createServer();
     const transport = new SSEServerTransport("/messages", res);
     sseTransports.set(transport.sessionId, transport);
+    logSessionStart("sse", transport.sessionId, req.headers["user-agent"]);
 
     transport.onclose = () => {
       sseTransports.delete(transport.sessionId);
@@ -131,10 +144,12 @@ async function startHttp() {
 
       if (!transport) {
         // Create new transport and server for this session
+        const userAgent = req.headers["user-agent"];
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (id) => {
             streamableTransports.set(id, transport!);
+            logSessionStart("streamable-http", id, userAgent);
           },
         });
 
