@@ -12,10 +12,16 @@ export async function getShopInfo() {
             phone: "+49 89 522634",
             email: "info@blumen-komander.de",
             hours: "Mo-Fr 08:00-18:30, Sa 08:00-13:00",
-            delivery_area: "München und Umland PLZ 80xxx-81xxx",
+            delivery_area:
+              "München, PLZ 80331-81929, sowie Neubiberg (85579)",
             delivery_fee: "Kostenlose Lieferung in München",
             delivery_days: "Montag bis Samstag",
-            same_day_cutoff: "12:00 Uhr",
+            // Identisch mit Startseite, llms.txt und /store/availability.
+            // Stand hier bis 06.09.2026 fest auf "12:00 Uhr" - das war der
+            // Samstagswert und galt faelschlich fuer die ganze Woche.
+            same_day_cutoff: "Mo-Fr bis 16:00 Uhr, Sa bis 12:00 Uhr",
+            same_day_cutoff_hochlast:
+              "Muttertag und Valentinstag bis 10:00 Uhr",
             payment_methods: [
               "Kreditkarte",
               "PayPal",
