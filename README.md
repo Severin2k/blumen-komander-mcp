@@ -76,7 +76,10 @@ Tools > Add a tool > Model Context Protocol
 | check_availability | Lieferverfügbarkeit für Datum und PLZ prüfen |
 | get_product_image | Produktfoto als echtes Bild (MCP-image), nicht nur als URL |
 | check_order_details | Sagt, welche Bestellangaben noch fehlen und ob sie Pflicht sind - ohne etwas anzulegen |
-| create_cart | Warenkorb anlegen mit Adresse, Grußkarte, Zahlung |
+| check_express | Preis für Express-Lieferung per Kurier anfragen (live, ~15 Min gültig) |
+| create_cart | Warenkorb anlegen: Lieferung oder Abholung, Grußkarte, Zahlung, optional Express |
+| add_to_cart | Weiteren Artikel in einen bestehenden Warenkorb legen |
+| update_cart | Bestehenden Warenkorb ändern: Termin, Adresse, Grußkarte, Zahlungsart |
 | get_checkout_link | Checkout-Link für bestehenden Warenkorb abrufen |
 | get_shop_info | Öffnungszeiten, Kontakt, Zahlungsmethoden |
 | get_order_status | Bestellstatus abfragen (Bestellnummer + E-Mail, keine Adressdaten) |

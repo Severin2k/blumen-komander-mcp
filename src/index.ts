@@ -13,6 +13,13 @@ import {
 } from "./tools/check-availability.js";
 import { createCartSchema, createCart } from "./tools/create-cart.js";
 import {
+  addToCartSchema,
+  addToCart,
+  updateCartSchema,
+  updateCart,
+} from "./tools/cart-aendern.js";
+import { checkExpressSchema, checkExpress } from "./tools/check-express.js";
+import {
   checkOrderDetailsSchema,
   checkOrderDetails,
 } from "./tools/check-order-details.js";
@@ -29,18 +36,24 @@ import {
   getOrderStatusSchema,
   getOrderStatus,
 } from "./tools/get-order-status.js";
-import { withLogging, logSessionStart } from "./logger.js";
+import { withLogging, logSessionStart, logClientInfo } from "./logger.js";
 
-function createServer(): McpServer {
+function createServer(sessionId?: () => string | undefined): McpServer {
   const server = new McpServer({
     name: "blumen-komander",
     version: "1.2.0",
   });
 
+  // Sobald der Client sich vorgestellt hat, seinen Namen mitschreiben.
+  server.server.oninitialized = () => {
+    logClientInfo(sessionId?.() || "unbekannt", server.server.getClientVersion());
+  };
+
   server.tool(
     "search_flowers",
     "Sucht verfügbare Blumensträuße bei Blumen Komander München. Filtert nach Anlass, Farbe, Stil und Budget. Gibt standardmäßig 24 Sträuße zurück, treffer_gesamt nennt die tatsächliche Zahl - mit offset lassen sich weitere nachladen. Zubehör wie Vasen, Ballons, Pralinen und Grußkarten steht getrennt unter zubehoer und ist kein Blumenvorschlag. Zu einem Strauß liefert get_product_image das Foto.",
     searchFlowersSchema,
+    { title: "Blumen suchen", readOnlyHint: true, openWorldHint: false },
     withLogging("search_flowers", searchFlowers)
   );
 
@@ -48,6 +61,7 @@ function createServer(): McpServer {
     "get_product_image",
     "Liefert das Foto eines Straußes als echtes Bild, nicht nur als Link - der Kunde sieht den Strauß also im Chat, ohne die Website zu öffnen. Braucht handle oder product_id aus der Antwort von search_flowers. Standardmäßig kommt nur das Hauptbild; mit alle_bilder: true kommen die weiteren Ansichten (höchstens 3 pro Aufruf). Gezielt für die ein bis drei Sträuße aufrufen, über die der Kunde wirklich spricht, nicht für alle Suchtreffer - jedes Bild kostet Kontext.",
     getProductImageSchema,
+    { title: "Produktfoto zeigen", readOnlyHint: true, openWorldHint: false },
     withLogging("get_product_image", getProductImage)
   );
 
@@ -55,6 +69,7 @@ function createServer(): McpServer {
     "check_availability",
     "Prüft ob Blumen Komander München an einem bestimmten Datum in eine bestimmte PLZ liefern kann. Lieferung ist bei Blumen Komander immer kostenlos - keine Liefergebühr. Gibt Same-Day Cutoff zurück.",
     checkAvailabilitySchema,
+    { title: "Liefertermin prüfen", readOnlyHint: true, openWorldHint: false },
     withLogging("check_availability", checkAvailability)
   );
 
@@ -62,6 +77,7 @@ function createServer(): McpServer {
     "check_order_details",
     "Prüft, welche Angaben für eine Bestellung schon vorliegen und welche noch fehlen - ohne einen Warenkorb anzulegen und ohne etwas zu buchen. Alle Parameter sind freiwillig, die KI kann also jederzeit mit dem aktuellen Zwischenstand fragen. Die Antwort trennt fehlende Pflichtangaben von fehlenden freiwilligen Angaben, erklärt zu jeder, wofür sie gebraucht wird bzw. was ohne sie passiert, und liefert unter 'dem_kunden_sagen' einen fertigen Satz für den Kunden sowie den kompletten Bestellablauf. Vor create_cart aufrufen, damit der Kunde den ganzen Ablauf kennt, ohne die Website zu öffnen.",
     checkOrderDetailsSchema,
+    { title: "Bestellangaben prüfen", readOnlyHint: true, openWorldHint: false },
     withLogging("check_order_details", checkOrderDetails)
   );
 
@@ -69,13 +85,39 @@ function createServer(): McpServer {
     "create_cart",
     "Legt einen Warenkorb bei Blumen Komander an und fügt einen Blumenstrauß hinzu. Setzt Lieferdatum, Lieferadresse, Zahlungsmethode und optional eine Grußkarte. PFLICHTANGABEN: gewählter Strauß, Lieferdatum, Vor- und Nachname des Empfängers, Straße und Hausnummer, PLZ, E-Mail des Bestellers. FREIWILLIG, aber dem Kunden aktiv anbieten: Telefonnummer des Empfängers (sonst kann der Fahrer nicht anrufen, wenn niemand öffnet), Grußkartentext (sonst kommt der Strauß ohne Karte), abweichende Rechnungsadresse (sonst gilt die Lieferadresse), Zahlungsart (Standard Kreditkarte/Apple Pay/Google Pay = stripe, sonst paypal oder sepa), Anzahl (Standard 1) und Ort (Standard München). Die Antwort enthält unter 'angaben' eine Liste aller nicht ausgefüllten Felder samt Kennzeichnung Pflicht/freiwillig und dem Satz 'dem_kunden_sagen' - diesen Hinweis dem Kunden weitergeben, damit er den kompletten Ablauf kennt, ohne die Website zu öffnen. Den vollständigen Bestellablauf liefert get_shop_info unter 'bestellablauf'.",
     createCartSchema,
+    { title: "Warenkorb anlegen", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     withLogging("create_cart", createCart)
+  );
+
+  server.tool(
+    "add_to_cart",
+    "Legt einen weiteren Artikel in einen bestehenden Warenkorb - einen zweiten Strauß oder Zubehör wie Vase, Grußkarte, Pralinen, Ballon oder Prosecco aus der Liste zubehoer von search_flowers. Braucht die cart_id aus create_cart. Solange nicht bezahlt wurde, ist das jederzeit möglich.",
+    addToCartSchema,
+    { title: "Artikel hinzufügen", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    withLogging("add_to_cart", addToCart)
+  );
+
+  server.tool(
+    "update_cart",
+    "Ändert einen bestehenden Warenkorb, statt einen neuen anzulegen: Liefer- oder Abholdatum, Adresse, Telefonnummer, E-Mail, Grußkartentext, Abholzeit oder Zahlungsart. Nur die Felder übergeben, die sich ändern. Bei neuem Datum oder neuer PLZ wird das Liefergebiet erneut geprüft und bei einem Problem nichts geändert. Ein bereits bezahlter Warenkorb wird abgelehnt.",
+    updateCartSchema,
+    { title: "Warenkorb ändern", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    withLogging("update_cart", updateCart)
+  );
+
+  server.tool(
+    "check_express",
+    "Fragt den Preis für eine Express-Lieferung per Kurier an, ohne etwas anzulegen. Der Preis kommt live vom Kurierdienst und gilt etwa 15 Minuten. Vor create_cart mit express: true aufrufen und dem Kunden den Zuschlag nennen - die normale Lieferung ist kostenlos, Express kostet extra.",
+    checkExpressSchema,
+    { title: "Express-Preis anfragen", readOnlyHint: true, openWorldHint: true },
+    withLogging("check_express", checkExpress)
   );
 
   server.tool(
     "get_checkout_link",
     "Gibt den direkten Checkout-Link für einen bestehenden Warenkorb zurück. Der Kunde klickt auf den Link und zahlt.",
     getCheckoutLinkSchema,
+    { title: "Zahlungslink holen", readOnlyHint: true, openWorldHint: false },
     withLogging("get_checkout_link", getCheckoutLink)
   );
 
@@ -83,6 +125,7 @@ function createServer(): McpServer {
     "get_shop_info",
     "Gibt allgemeine Informationen über Blumen Komander zurück - Öffnungszeiten, Liefergebiet, Kontakt, verfügbare Zahlungsmethoden.",
     getShopInfoSchema,
+    { title: "Ladeninformationen", readOnlyHint: true, openWorldHint: false },
     withLogging("get_shop_info", getShopInfo)
   );
 
@@ -90,6 +133,7 @@ function createServer(): McpServer {
     "get_order_status",
     "Fragt den Status einer bestehenden Bestellung bei Blumen Komander ab - eingegangen, in Vorbereitung, unterwegs oder geliefert, inkl. Lieferdatum. Zur Verifikation werden Bestellnummer (aus der Bestellbestätigung) und die E-Mail-Adresse des Bestellers benötigt. Gibt keine Adressdaten zurück.",
     getOrderStatusSchema,
+    { title: "Bestellstatus abfragen", readOnlyHint: true, openWorldHint: false },
     withLogging("get_order_status", getOrderStatus)
   );
 
@@ -110,8 +154,10 @@ async function startHttp() {
   const sseTransports = new Map<string, SSEServerTransport>();
 
   app.get("/sse", async (req, res) => {
-    const server = createServer();
+    let sseSessionId: string | undefined;
+    const server = createServer(() => sseSessionId);
     const transport = new SSEServerTransport("/messages", res);
+    sseSessionId = transport.sessionId;
     sseTransports.set(transport.sessionId, transport);
     logSessionStart("sse", transport.sessionId, req.headers["user-agent"]);
 
@@ -181,7 +227,7 @@ async function startHttp() {
           }
         };
 
-        const server = createServer();
+        const server = createServer(() => transport!.sessionId);
         await server.connect(transport);
       }
 

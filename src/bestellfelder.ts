@@ -56,14 +56,15 @@ export const BESTELLFELDER: Bestellfeld[] = [
     feld: "address_1",
     bezeichnung: "Strasse und Hausnummer",
     pflicht: true,
-    hinweis: "Lieferadresse. Stockwerk oder Firma bitte mit angeben.",
+    hinweis:
+      "Lieferadresse, Pflicht bei Lieferung. Stockwerk oder Firma bitte mit angeben. Bei Abholung im Laden entfaellt sie.",
   },
   {
     feld: "postal_code",
     bezeichnung: "PLZ der Lieferadresse",
     pflicht: true,
     hinweis:
-      "Muss im Liefergebiet liegen (Muenchen 80331-81929 sowie Neubiberg 85579).",
+      "Pflicht bei Lieferung, muss im Liefergebiet liegen (Muenchen 80331-81929 sowie Neubiberg 85579). Bei Abholung entfaellt sie.",
   },
   {
     feld: "city",
@@ -93,6 +94,20 @@ export const BESTELLFELDER: Bestellfeld[] = [
       "Ohne Text wird der Strauss ohne Karte geliefert. Die Karte wird von Hand geschrieben, die Karte selbst kostet nichts.",
   },
   {
+    feld: "delivery_mode",
+    bezeichnung: "Lieferung oder Abholung",
+    pflicht: false,
+    hinweis:
+      "Ohne Angabe wird geliefert. Abholung im Laden ist moeglich: Hessstrasse 37, 80798 Muenchen, Mo-Fr 08:00-18:30, Sa 08:00-13:00.",
+  },
+  {
+    feld: "express",
+    bezeichnung: "Express-Lieferung per Kurier",
+    pflicht: false,
+    hinweis:
+      "Ohne Angabe normale Lieferung, die ist kostenlos. Express kostet einen Zuschlag, den check_express vorher live nennt.",
+  },
+  {
     feld: "payment_provider",
     bezeichnung: "Zahlungsart",
     pflicht: false,
@@ -117,6 +132,8 @@ export const BESTELLABLAUF = [
   "4. Warenkorb anlegen - create_cart. Die Antwort sagt, welche Angaben fehlen und ob das schlimm ist.",
   "5. Checkout-Link an den Kunden - get_checkout_link. Auf der Seite zahlt der Kunde nur noch, es muss nichts mehr eingegeben werden.",
   "6. Nach der Zahlung kommt die Bestellbestaetigung per E-Mail mit Bestellnummer. Status danach jederzeit ueber get_order_status (Bestellnummer + E-Mail).",
+  "Aenderungen vor der Zahlung: update_cart fuer Termin, Adresse, Grusskarte oder Zahlungsart, add_to_cart fuer einen weiteren Artikel. Ein neuer Warenkorb ist dafuer nicht noetig.",
+  "Statt Lieferung ist auch Abholung im Laden moeglich (delivery_mode: abholung), dann entfaellt die Lieferadresse. Eilig? check_express nennt den Kurierpreis.",
 ];
 
 export const CHECKOUT_HINWEIS =

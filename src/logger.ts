@@ -46,6 +46,30 @@ function sanitizeArgs(
       felder_gesetzt: Object.keys(args).length,
     };
   }
+  if (tool === "update_cart") {
+    return {
+      cart_id: args.cart_id,
+      delivery_date: args.delivery_date,
+      postal_code: args.postal_code,
+      payment_provider: args.payment_provider,
+      pickup_time: args.pickup_time,
+      geaenderte_felder: Object.keys(args).filter((k) => k !== "cart_id"),
+    };
+  }
+  if (tool === "add_to_cart") {
+    return {
+      cart_id: args.cart_id,
+      variant_id: args.variant_id,
+      quantity: args.quantity,
+      has_wunsch_text: Boolean(args.wunsch_text),
+    };
+  }
+  if (tool === "check_express") {
+    // Die Adresse ist eine Kundenadresse, nur die PLZ wird geloggt.
+    const adresse = String(args.address || "");
+    const plz = adresse.match(/\b\d{5}\b/);
+    return { postal_code: plz ? plz[0] : null };
+  }
   if (tool === "create_cart") {
     return {
       variant_id: args.variant_id,
@@ -56,12 +80,35 @@ function sanitizeArgs(
       payment_provider: args.payment_provider,
       has_greeting_card: Boolean(args.greeting_card),
       billing_differs: Boolean(args.billing_first_name),
+      delivery_mode: args.delivery_mode || "lieferung",
+      express: Boolean(args.express),
+      has_wunsch_text: Boolean(args.wunsch_text),
     };
   }
   if (tool === "get_order_status") {
     return { order_number: args.order_number };
   }
   return args;
+}
+
+/**
+ * Welcher Assistent sich verbunden hat, aus seiner eigenen Angabe beim
+ * initialize (clientInfo). Bis 07.09.2026 stand im Log nur der User-Agent -
+ * damit liess sich nicht belegen, ob ein bestimmter Assistent den Server
+ * wirklich benutzt. clientInfo ist die Selbstauskunft des Clients, kostet
+ * keine IP-Adresse und keine personenbezogenen Daten.
+ */
+export function logClientInfo(
+  sessionId: string,
+  client: { name?: string; version?: string } | undefined
+) {
+  void writeLine({
+    ts: new Date().toISOString(),
+    event: "client_info",
+    session: sessionId,
+    client_name: client?.name || null,
+    client_version: client?.version || null,
+  });
 }
 
 export function logSessionStart(
