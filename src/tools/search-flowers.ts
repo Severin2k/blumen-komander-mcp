@@ -79,37 +79,66 @@ export async function searchFlowers(args: {
         id: string;
         handle: string;
         title: string;
+        description?: string | null;
         variants?: Array<{
           id: string;
           title: string;
           calculated_price?: { calculated_amount?: number };
           price?: number;
+          slightly_above_budget?: boolean;
         }>;
         thumbnail: string | null;
         metadata?: Record<string, unknown>;
       }>;
     };
 
+    // Das Backend zeigt bewusst bis 15 % ueber maxPrice und markiert diese
+    // Varianten mit slightly_above_budget. Beides sowie die Beschreibung wurde
+    // hier bis 07.09.2026 weggemappt - die KI nannte dem Kunden dann 64,90 EUR
+    // als Treffer fuer ein 60-EUR-Budget, ohne Hinweis und ohne Beschreibung.
     const products =
       data.products?.map((p) => ({
         id: p.id,
         handle: p.handle,
         title: p.title,
+        description: p.description ?? null,
         variants: p.variants?.map((v) => ({
           id: v.id,
           title: v.title,
           price: v.calculated_price?.calculated_amount ?? v.price,
+          ueber_budget: v.slightly_above_budget === true,
+          ...(v.slightly_above_budget === true
+            ? {
+                budget_hinweis: `Liegt über dem genannten Budget von ${args.maxPrice} EUR. Dem Kunden den Preis nennen und fragen, ob das in Ordnung ist.`,
+              }
+            : {}),
         })),
         thumbnail: p.thumbnail,
         url: `${PUBLIC_URL}/de/products/${p.handle}`,
         metadata: p.metadata,
       })) ?? [];
 
+    const ueberBudget = products.filter((p) =>
+      p.variants?.some((v) => v.ueber_budget)
+    ).length;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({ products, count: products.length }, null, 2),
+          text: JSON.stringify(
+            {
+              products,
+              count: products.length,
+              ...(ueberBudget > 0
+                ? {
+                    budget_hinweis: `${ueberBudget} der Treffer liegen leicht über dem Budget von ${args.maxPrice} EUR (bis 15 % darüber wird mitgezeigt). Sie sind mit "ueber_budget": true markiert - diese Sträuße nur mit ausdrücklichem Preishinweis vorschlagen.`,
+                  }
+                : {}),
+            },
+            null,
+            2
+          ),
         },
       ],
     };
