@@ -1,3 +1,9 @@
+import {
+  BESTELLFELDER,
+  BESTELLABLAUF,
+  CHECKOUT_HINWEIS,
+} from "../bestellfelder.js";
+
 export const getShopInfoSchema = {};
 
 export async function getShopInfo() {
@@ -31,6 +37,24 @@ export async function getShopInfo() {
             ],
             shop_url: "https://blumen-verschicken.online",
             api_docs: "https://blumen-verschicken.online/llms.txt",
+            // Damit die KI dem Kunden den ganzen Ablauf erklaeren kann,
+            // ohne dass er die Website aufruft.
+            bestellablauf: BESTELLABLAUF,
+            pflichtangaben: BESTELLFELDER.filter((f) => f.pflicht).map((f) => ({
+              angabe: f.bezeichnung,
+              feld: f.feld,
+              hinweis: f.hinweis,
+            })),
+            freiwillige_angaben: BESTELLFELDER.filter((f) => !f.pflicht).map(
+              (f) => ({
+                angabe: f.bezeichnung,
+                feld: f.feld,
+                hinweis: f.hinweis,
+              })
+            ),
+            rechnungsadresse:
+              "Freiwillig. Ohne Angabe gilt die Lieferadresse als Rechnungsadresse.",
+            checkout_hinweis: CHECKOUT_HINWEIS,
           },
           null,
           2

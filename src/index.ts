@@ -13,6 +13,10 @@ import {
 } from "./tools/check-availability.js";
 import { createCartSchema, createCart } from "./tools/create-cart.js";
 import {
+  checkOrderDetailsSchema,
+  checkOrderDetails,
+} from "./tools/check-order-details.js";
+import {
   getCheckoutLinkSchema,
   getCheckoutLink,
 } from "./tools/get-checkout-link.js";
@@ -26,7 +30,7 @@ import { withLogging, logSessionStart } from "./logger.js";
 function createServer(): McpServer {
   const server = new McpServer({
     name: "blumen-komander",
-    version: "1.0.0",
+    version: "1.2.0",
   });
 
   server.tool(
@@ -44,8 +48,15 @@ function createServer(): McpServer {
   );
 
   server.tool(
+    "check_order_details",
+    "Prüft, welche Angaben für eine Bestellung schon vorliegen und welche noch fehlen - ohne einen Warenkorb anzulegen und ohne etwas zu buchen. Alle Parameter sind freiwillig, die KI kann also jederzeit mit dem aktuellen Zwischenstand fragen. Die Antwort trennt fehlende Pflichtangaben von fehlenden freiwilligen Angaben, erklärt zu jeder, wofür sie gebraucht wird bzw. was ohne sie passiert, und liefert unter 'dem_kunden_sagen' einen fertigen Satz für den Kunden sowie den kompletten Bestellablauf. Vor create_cart aufrufen, damit der Kunde den ganzen Ablauf kennt, ohne die Website zu öffnen.",
+    checkOrderDetailsSchema,
+    withLogging("check_order_details", checkOrderDetails)
+  );
+
+  server.tool(
     "create_cart",
-    "Legt einen Warenkorb bei Blumen Komander an und fügt einen Blumenstrauß hinzu. Setzt Lieferdatum, Lieferadresse, Zahlungsmethode und optional eine Grußkarte. Fragt den Kunden ob die Rechnungsadresse von der Lieferadresse abweicht. Falls ja, werden billing_first_name, billing_last_name, billing_address_1, billing_postal_code und billing_city gesetzt. Falls nein, wird die Lieferadresse als Rechnungsadresse verwendet. Bevor der Warenkorb angelegt wird sollte die KI den Kunden fragen: 1. Weicht die Rechnungsadresse von der Lieferadresse ab? 2. Welche Zahlungsmethode bevorzugst du? - Kreditkarte / Apple Pay / Google Pay (stripe) - PayPal (paypal) - SEPA-Lastschrift (sepa)",
+    "Legt einen Warenkorb bei Blumen Komander an und fügt einen Blumenstrauß hinzu. Setzt Lieferdatum, Lieferadresse, Zahlungsmethode und optional eine Grußkarte. PFLICHTANGABEN: gewählter Strauß, Lieferdatum, Vor- und Nachname des Empfängers, Straße und Hausnummer, PLZ, E-Mail des Bestellers. FREIWILLIG, aber dem Kunden aktiv anbieten: Telefonnummer des Empfängers (sonst kann der Fahrer nicht anrufen, wenn niemand öffnet), Grußkartentext (sonst kommt der Strauß ohne Karte), abweichende Rechnungsadresse (sonst gilt die Lieferadresse), Zahlungsart (Standard Kreditkarte/Apple Pay/Google Pay = stripe, sonst paypal oder sepa), Anzahl (Standard 1) und Ort (Standard München). Die Antwort enthält unter 'angaben' eine Liste aller nicht ausgefüllten Felder samt Kennzeichnung Pflicht/freiwillig und dem Satz 'dem_kunden_sagen' - diesen Hinweis dem Kunden weitergeben, damit er den kompletten Ablauf kennt, ohne die Website zu öffnen. Den vollständigen Bestellablauf liefert get_shop_info unter 'bestellablauf'.",
     createCartSchema,
     withLogging("create_cart", createCart)
   );
@@ -182,7 +193,7 @@ async function startHttp() {
     res.json({
       status: "ok",
       server: "blumen-komander-mcp",
-      version: "1.0.0",
+      version: "1.2.0",
       activeSessions: sseTransports.size + streamableTransports.size,
     });
   });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiCall, ApiError, PUBLIC_URL, REGION_ID } from "../api/client.js";
+import { feldstatus, CHECKOUT_HINWEIS } from "../bestellfelder.js";
 
 export const createCartSchema = {
   variant_id: z.string().describe("ID der gewählten Produktvariante"),
@@ -166,6 +167,10 @@ export async function createCart(args: {
 
     const checkoutUrl = `${PUBLIC_URL}/de/checkout?cartId=${cartId}&step=payment`;
 
+    // Was hat der Kunde angegeben, was fehlt noch und ist das Pflicht?
+    // Die KI soll das dem Kunden weitergeben koennen, ohne die Seite zu kennen.
+    const status = feldstatus(args as unknown as Record<string, unknown>);
+
     return {
       content: [
         {
@@ -183,6 +188,21 @@ export async function createCart(args: {
                 delivery_fee: 0,
                 payment_method: args.payment_provider || "stripe",
               },
+              angaben: {
+                alle_pflichtangaben_vorhanden: status.vollstaendig,
+                ausgefuellt: status.ausgefuellt,
+                nicht_ausgefuellt: status.offen.map((f) => ({
+                  angabe: f.bezeichnung,
+                  feld: f.feld,
+                  pflicht: f.pflicht,
+                  hinweis: f.hinweis,
+                })),
+                rechnungsadresse: status.rechnungsadresse,
+                dem_kunden_sagen: status.hinweis_fuer_kunden,
+              },
+              naechster_schritt: status.vollstaendig
+                ? "Checkout-Link an den Kunden geben. " + CHECKOUT_HINWEIS
+                : "Erst die fehlenden Pflichtangaben beim Kunden erfragen.",
             },
             null,
             2

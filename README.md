@@ -74,6 +74,7 @@ Tools > Add a tool > Model Context Protocol
 |------|-------------|
 | search_flowers | Blumensträuße nach Anlass, Farbe, Budget suchen |
 | check_availability | Lieferverfügbarkeit für Datum und PLZ prüfen |
+| check_order_details | Sagt, welche Bestellangaben noch fehlen und ob sie Pflicht sind - ohne etwas anzulegen |
 | create_cart | Warenkorb anlegen mit Adresse, Grußkarte, Zahlung |
 | get_checkout_link | Checkout-Link für bestehenden Warenkorb abrufen |
 | get_shop_info | Öffnungszeiten, Kontakt, Zahlungsmethoden |
@@ -86,8 +87,15 @@ Nutzer: "Bestell Blumen zum Geburtstag, Rosa, max 60 Euro, Freitag nach München
 KI führt aus:
 1. `search_flowers(occasion=geburtstag, color=rosa, maxPrice=60)`
 2. `check_availability(date=2026-05-22, postalCode=80799)`
-3. `create_cart(variant_id=..., delivery_date=..., adresse=...)`
-4. Checkout-Link an Nutzer - Nutzer zahlt selbst
+3. `check_order_details(...)` - welche Angaben fehlen noch, Pflicht oder freiwillig
+4. `create_cart(variant_id=..., delivery_date=..., adresse=...)`
+5. Checkout-Link an Nutzer - Nutzer zahlt selbst
+
+`get_shop_info` liefert unter `bestellablauf`, `pflichtangaben` und
+`freiwillige_angaben` den kompletten Ablauf, damit die KI ihn dem Kunden
+erklären kann, ohne dass der Kunde die Website öffnet. `check_order_details`
+und `create_cart` geben zusätzlich unter `dem_kunden_sagen` einen fertigen
+Satz zurück, der die noch offenen Angaben nach Pflicht und freiwillig trennt.
 
 ## Sicherheit
 
