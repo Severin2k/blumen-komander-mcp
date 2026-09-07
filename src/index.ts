@@ -39,7 +39,7 @@ function createServer(): McpServer {
 
   server.tool(
     "search_flowers",
-    "Sucht verfügbare Blumensträuße bei Blumen Komander München. Filtert nach Anlass, Farbe, Stil und Budget.",
+    "Sucht verfügbare Blumensträuße bei Blumen Komander München. Filtert nach Anlass, Farbe, Stil und Budget. Gibt standardmäßig 24 Sträuße zurück, treffer_gesamt nennt die tatsächliche Zahl - mit offset lassen sich weitere nachladen. Zubehör wie Vasen, Ballons, Pralinen und Grußkarten steht getrennt unter zubehoer und ist kein Blumenvorschlag. Zu einem Strauß liefert get_product_image das Foto.",
     searchFlowersSchema,
     withLogging("search_flowers", searchFlowers)
   );

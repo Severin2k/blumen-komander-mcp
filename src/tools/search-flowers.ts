@@ -56,7 +56,26 @@ export const searchFlowersSchema = {
     .describe("Stil des Straußes"),
   maxPrice: z.number().optional().describe("Höchstpreis in EUR"),
   minPrice: z.number().optional().describe("Mindestpreis in EUR"),
+  limit: z
+    .number()
+    .optional()
+    .describe("Wieviele Sträuße zurückgeben (Standard 24, höchstens 50)"),
+  offset: z
+    .number()
+    .optional()
+    .describe("Für weitere Seiten: wieviele Treffer überspringen"),
 };
+
+/** Zubehoer wie Vase, Ballon oder Grusskarte traegt keine Blumen-Metadaten. */
+function istStrauss(p: { metadata?: Record<string, unknown> }): boolean {
+  const m = p.metadata || {};
+  return ["occasion", "color", "flower_type", "style"].some(
+    (k) => Array.isArray(m[k]) && (m[k] as unknown[]).length > 0
+  );
+}
+
+const BACKEND_MAX = 50;
+const MAX_SEITEN = 4;
 
 export async function searchFlowers(args: {
   occasion?: string;
@@ -65,32 +84,62 @@ export async function searchFlowers(args: {
   style?: string;
   maxPrice?: number;
   minPrice?: number;
+  limit?: number;
+  offset?: number;
 }) {
   const params: Record<string, string> = {};
   for (const [key, value] of Object.entries(args)) {
-    if (value !== undefined && value !== null) {
-      params[key] = String(value);
-    }
+    if (value === undefined || value === null) continue;
+    // limit/offset steuert der MCP selbst, siehe unten.
+    if (key === "limit" || key === "offset") continue;
+    params[key] = String(value);
   }
 
   try {
-    const data = (await apiCall("/store/products/search", { params })) as {
-      products?: Array<{
+    type Suchtreffer = {
+      id: string;
+      handle: string;
+      title: string;
+      description?: string | null;
+      variants?: Array<{
         id: string;
-        handle: string;
         title: string;
-        description?: string | null;
-        variants?: Array<{
-          id: string;
-          title: string;
-          calculated_price?: { calculated_amount?: number };
-          price?: number;
-          slightly_above_budget?: boolean;
-        }>;
-        thumbnail: string | null;
-        metadata?: Record<string, unknown>;
+        calculated_price?: { calculated_amount?: number };
+        price?: number;
+        slightly_above_budget?: boolean;
       }>;
+      thumbnail: string | null;
+      metadata?: Record<string, unknown>;
     };
+
+    // Die Suchroute sortiert ohne Budgetangabe nach Preis aufsteigend und
+    // liefert per Voreinstellung 10 Treffer. Die guenstigsten Artikel sind
+    // Grusskarten zu 3,90 EUR - eine Suche ohne Filter zeigte deshalb bis
+    // 07.09.2026 neun Grusskarten und eine Schachtel Pralinen und behauptete
+    // dabei count 10, obwohl der Shop 58 Artikel fuehrt. Deshalb wird hier
+    // vollstaendig geladen, Zubehoer getrennt und erst danach paginiert.
+    const alle: Suchtreffer[] = [];
+    for (let seite = 0; seite < MAX_SEITEN; seite++) {
+      const antwort = (await apiCall("/store/products/search", {
+        params: {
+          ...params,
+          limit: String(BACKEND_MAX),
+          offset: String(seite * BACKEND_MAX),
+        },
+      })) as { products?: Suchtreffer[] };
+      const teil = antwort.products ?? [];
+      alle.push(...teil);
+      if (teil.length < BACKEND_MAX) break;
+    }
+
+    const straeusse = alle.filter(istStrauss);
+    const zubehoer = alle.filter((p) => !istStrauss(p));
+
+    const limit = Math.min(Math.max(args.limit ?? 24, 1), 50);
+    const offset = Math.max(args.offset ?? 0, 0);
+    const seitenAusschnitt = straeusse.slice(offset, offset + limit);
+
+    const data = { products: seitenAusschnitt };
 
     // Das Backend zeigt bewusst bis 15 % ueber maxPrice und markiert diese
     // Varianten mit slightly_above_budget. Beides sowie die Beschreibung wurde
@@ -130,6 +179,27 @@ export async function searchFlowers(args: {
             {
               products,
               count: products.length,
+              treffer_gesamt: straeusse.length,
+              angezeigt: `${offset + 1}-${offset + products.length} von ${straeusse.length}`,
+              ...(offset + products.length < straeusse.length
+                ? {
+                    weitere_hinweis: `Es gibt ${straeusse.length - offset - products.length} weitere Sträuße. Mit offset: ${offset + products.length} nachladen.`,
+                  }
+                : {}),
+              ...(zubehoer.length
+                ? {
+                    zubehoer: zubehoer.map((z) => ({
+                      titel: z.title,
+                      handle: z.handle,
+                      ab_preis:
+                        z.variants?.[0]?.calculated_price?.calculated_amount ??
+                        z.variants?.[0]?.price ??
+                        null,
+                    })),
+                    zubehoer_hinweis:
+                      "Vasen, Ballons, Pralinen, Prosecco und Grußkarten sind Zubehör, keine Sträuße. Sie stehen bewusst nicht in der Trefferliste, damit sie nicht als Blumenvorschlag missverstanden werden. create_cart legt derzeit nur einen Artikel an - Zubehör kann der Kunde im Shop dazulegen.",
+                  }
+                : {}),
               bild_hinweis:
                 "thumbnail ist eine Bild-URL. Wenn der Kunde den Strauß wirklich sehen soll, get_product_image mit dem handle aufrufen - das liefert das Foto als echtes Bild statt als Link. Nur für die ein bis drei Sträuße aufrufen, über die gesprochen wird.",
               ...(ueberBudget > 0
