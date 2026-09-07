@@ -74,6 +74,7 @@ Tools > Add a tool > Model Context Protocol
 |------|-------------|
 | search_flowers | Blumensträuße nach Anlass, Farbe, Budget suchen |
 | check_availability | Lieferverfügbarkeit für Datum und PLZ prüfen |
+| get_product_image | Produktfoto als echtes Bild (MCP-image), nicht nur als URL |
 | check_order_details | Sagt, welche Bestellangaben noch fehlen und ob sie Pflicht sind - ohne etwas anzulegen |
 | create_cart | Warenkorb anlegen mit Adresse, Grußkarte, Zahlung |
 | get_checkout_link | Checkout-Link für bestehenden Warenkorb abrufen |

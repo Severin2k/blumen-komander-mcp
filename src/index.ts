@@ -22,6 +22,10 @@ import {
 } from "./tools/get-checkout-link.js";
 import { getShopInfoSchema, getShopInfo } from "./tools/get-shop-info.js";
 import {
+  getProductImageSchema,
+  getProductImage,
+} from "./tools/get-product-image.js";
+import {
   getOrderStatusSchema,
   getOrderStatus,
 } from "./tools/get-order-status.js";
@@ -38,6 +42,13 @@ function createServer(): McpServer {
     "Sucht verfügbare Blumensträuße bei Blumen Komander München. Filtert nach Anlass, Farbe, Stil und Budget.",
     searchFlowersSchema,
     withLogging("search_flowers", searchFlowers)
+  );
+
+  server.tool(
+    "get_product_image",
+    "Liefert das Foto eines Straußes als echtes Bild, nicht nur als Link - der Kunde sieht den Strauß also im Chat, ohne die Website zu öffnen. Braucht handle oder product_id aus der Antwort von search_flowers. Standardmäßig kommt nur das Hauptbild; mit alle_bilder: true kommen die weiteren Ansichten (höchstens 3 pro Aufruf). Gezielt für die ein bis drei Sträuße aufrufen, über die der Kunde wirklich spricht, nicht für alle Suchtreffer - jedes Bild kostet Kontext.",
+    getProductImageSchema,
+    withLogging("get_product_image", getProductImage)
   );
 
   server.tool(

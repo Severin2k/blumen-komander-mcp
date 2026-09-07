@@ -130,6 +130,8 @@ export async function searchFlowers(args: {
             {
               products,
               count: products.length,
+              bild_hinweis:
+                "thumbnail ist eine Bild-URL. Wenn der Kunde den Strauß wirklich sehen soll, get_product_image mit dem handle aufrufen - das liefert das Foto als echtes Bild statt als Link. Nur für die ein bis drei Sträuße aufrufen, über die gesprochen wird.",
               ...(ueberBudget > 0
                 ? {
                     budget_hinweis: `${ueberBudget} der Treffer liegen leicht über dem Budget von ${args.maxPrice} EUR (bis 15 % darüber wird mitgezeigt). Sie sind mit "ueber_budget": true markiert - diese Sträuße nur mit ausdrücklichem Preishinweis vorschlagen.`,

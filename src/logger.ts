@@ -35,6 +35,17 @@ function sanitizeArgs(
 ): Record<string, unknown> | undefined {
   if (!args) return undefined;
 
+  // Beide Bestell-Tools bekommen Name, Adresse und E-Mail. Nur die fuer die
+  // Auswertung noetigen Felder werden geloggt, nie Klarnamen oder Adressen.
+  if (tool === "check_order_details") {
+    return {
+      hat_variant: Boolean(args.variant_id),
+      delivery_date: args.delivery_date,
+      postal_code: args.postal_code,
+      payment_provider: args.payment_provider,
+      felder_gesetzt: Object.keys(args).length,
+    };
+  }
   if (tool === "create_cart") {
     return {
       variant_id: args.variant_id,
@@ -67,8 +78,14 @@ export function logSessionStart(
   });
 }
 
+// Bildinhalte muessen hier mit rein, seit get_product_image echte
+// MCP-image-Bloecke zurueckgibt (07.09.2026).
+type ToolContent =
+  | { type: "text"; text: string }
+  | { type: "image"; data: string; mimeType: string };
+
 type ToolHandler<A> = (args: A, extra?: unknown) => Promise<{
-  content: Array<{ type: "text"; text: string }>;
+  content: ToolContent[];
   isError?: boolean;
 }>;
 
