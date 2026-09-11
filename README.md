@@ -1,6 +1,6 @@
 # Blumen Komander MCP Server
 
-Deutschlands erster Florist mit öffentlichem MCP Server. Bestelle Blumen in München per KI-Assistent - von der Suche bis zum Checkout.
+Ein Münchner Florist mit öffentlichem MCP Server. Bestelle Blumen in München per KI-Assistent - von der Suche bis zum Checkout.
 
 ## Was dieser Server kann
 
