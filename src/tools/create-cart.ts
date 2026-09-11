@@ -285,6 +285,10 @@ export async function createCart(args: CreateCartArgs) {
     if (args.greeting_card) {
       metadata.greeting_card = args.greeting_card;
     }
+    // Herkunft: dieser Warenkorb wird ueber den MCP-Server angelegt (z.B. ChatGPT/
+    // Claude via MCP, ohne Browser-Session). So sind MCP-Kaeufe in der Auswertung
+    // sauber von Browser-Bestellungen trennbar (metadata.quelle = "mcp").
+    metadata.quelle = "mcp";
 
     await apiCall(`/store/carts/${cartId}`, {
       method: "POST",
