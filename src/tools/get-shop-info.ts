@@ -29,6 +29,8 @@ export async function getShopInfo() {
               "Express in ca. 90 Minuten: Mo-Fr bis 17:00 Uhr, Sa bis 12:00 Uhr bestellbar, Zuschlag je nach Entfernung. Sonntags kein Express.",
             greeting_card:
               "Handschriftliche Karte: neutrale Karte kostenlos, Motivkarten 3,90 EUR.",
+            anonym:
+              "Anonym schicken moeglich: Namen einfach nicht auf die Grusskarte schreiben. Den Namen des Bestellers geben wir auch auf Nachfrage des Empfaengers nicht heraus.",
             outside_munich:
               "Ausserhalb des Liefergebiets nicht ueber den Shop bestellbar; auf Anfrage (Telefon/E-Mail) Vermittlung an Partner-Floristen vor Ort.",
             // Identisch mit Startseite, llms.txt und /store/availability.
