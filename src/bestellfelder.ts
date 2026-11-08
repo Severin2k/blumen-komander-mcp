@@ -38,7 +38,7 @@ export const BESTELLFELDER: Bestellfeld[] = [
     bezeichnung: "Lieferdatum",
     pflicht: true,
     hinweis:
-      "Wir liefern Montag bis Samstag. Vorher mit check_availability pruefen, ob der Tag moeglich ist.",
+      "Wir liefern Montag bis Sonntag. Sonntags per Kurier mit 15 EUR Sonntagszuschlag (wird automatisch berechnet), Bestellung bis Samstag 12 Uhr. Keine Lieferung an bayerischen Feiertagen ausser Valentinstag und Muttertag. Vorher mit check_availability pruefen, ob der Tag moeglich ist.",
   },
   {
     feld: "first_name",
@@ -91,7 +91,7 @@ export const BESTELLFELDER: Bestellfeld[] = [
     bezeichnung: "Text fuer die Grusskarte",
     pflicht: false,
     hinweis:
-      "Ohne Text wird der Strauss ohne Karte geliefert. Die Karte wird von Hand geschrieben, die Karte selbst kostet nichts.",
+      "Ohne Text wird der Strauss ohne Karte geliefert. Der Text wird von Hand auf eine Karte geschrieben. Ohne Motivwahl ist das eine neutrale Karte, die nichts kostet. Motivkarten (z. B. Rote Rose, Alles Liebe, Geburtstag, Ich denk an Dich) kosten 3,90 EUR und koennen mit add_to_cart aus der Zubehoerliste dazugelegt werden.",
   },
   {
     feld: "delivery_mode",
